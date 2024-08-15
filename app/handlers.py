@@ -22,10 +22,11 @@ async def start_comand(message: Message, state: FSMContext):
     await message.answer("Введите свое имя")
 
 
-# @router.callback_query(F.data == 'catalog')
-# async def catal(calback: CallbackQuery):
-#     await calback.answer('')
-#     await calback.message.edit_text('[f[ffПривет!', reply_markup=kb.settings)
+@router.message(F.text == 'СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')
+async def delall(message: Message):
+    await message.answer('ВСЁ СГОРЕЛО НАХУЙ! Теперь можно возвращаться в начало.\n\n'
+                         'Нажми на 👉 /start')
+
 
 @router.message(Reg.qname)
 async def reg_s2(message: Message, state: FSMContext):
@@ -94,9 +95,5 @@ async def reg_s6(message: Message, state: FSMContext):
 async def hell_comand(message: Message):
     await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!", reply_markup=kb.base_key)
 
-@router.message(F.text == 'СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')
-async def delall(message: Message):
-    await message.answer('ВСЁ СГОРЕЛО НАХУЙ! Теперь можно возвращаться в начало.\n\n'
-                         'Нажми на 👉 /start')
 
 
