@@ -1,31 +1,13 @@
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F
 
-
 import app.keyboards as kb
-from statuses import Reg
+from app.statuses import Reg
 
 router = Router()
-
-dfac = {
-    'et': 'Естественно-технологический факультет',
-    'sport': 'Высшая шк. физической культуры и спорта',
-    'ist': 'Исторический факультет',
-    'doshfak': 'Факультет дошкольного образования',
-    'fiko': 'Факультет инклюзивного и коррекц. образования',
-    'inyaz': 'Факультет иностранных языков',
-    'mfi': 'Факультет математики, физики и информатики',
-    'unk': 'Факультет подгот. учителей начальных классов',
-    'filfak': 'Филологический факультет',
-    'colege': 'Колледж',
-    'psifak': 'Факультет психологии',
-    'ppi': 'Профессионально-педагогический институт'
-}
-
-
 
 
 @router.message(Command("help"))
@@ -39,10 +21,11 @@ async def start_comand(message: Message, state: FSMContext):
     await state.set_state(Reg.qname)
     await message.answer("Введите свое имя")
 
+
 # @router.callback_query(F.data == 'catalog')
 # async def catal(calback: CallbackQuery):
 #     await calback.answer('')
-#     await calback.message.edit_text('Привет!', reply_markup=kb.settings)
+#     await calback.message.edit_text('[f[ffПривет!', reply_markup=kb.settings)
 
 @router.message(Reg.qname)
 async def reg_s2(message: Message, state: FSMContext):
@@ -52,13 +35,68 @@ async def reg_s2(message: Message, state: FSMContext):
 
 
 @router.message(Reg.qsname)
-async def regFin(message: Message, state: FSMContext):
-    await state.update_data(Sname=message.text)
-    await message.answer("Выберите свой факультет", reply_markup=kb.faculty_one)
+async def reg_s3(message: Message, state: FSMContext):
+    await state.update_data(sname=message.text)
+    await state.set_state(Reg.qinstit)
+    await message.answer("Ты из педагогического?", reply_markup=kb.ped_question)
 
-@router.callback_query(F.data == 'next')
+
+@router.message(Reg.qinstit)
+async def reg_s4(message: Message, state: FSMContext):
+    await state.update_data(instit=message.text)
+    if message.text == '✅Да':
+        await state.set_state(Reg.fped)
+        await message.answer('Выбери свой фаультет', reply_markup=kb.faculty_one)
+    if message.text == '❌Нет':
+        await message.answer('Понял, принял, теперь напиши на каком ты курсе. Достатточно просто отправить цифру в чат')
+        await state.update_data(faculty='Нет информации*')
+        await state.set_state(Reg.qcourse)
+
+
+@router.message(Reg.fped, F.text == '⬅️На стр. 1')
+async def reg_topage1(message: Message, state: FSMContext):
+    await message.answer('Принято! Переходим на страницу 1', reply_markup=kb.faculty_one)
+
+
+@router.message(Reg.fped, (F.text == '➡️На стр. 2' or F.text == '⬅️На стр. 2'))
+async def reg_topage2(message: Message, state: FSMContext):
+    await message.answer('Принято! Переходим на страницу 2', reply_markup=kb.faculty_two)
+
+
+@router.message(Reg.fped, F.text == '➡️На стр. 3')
+async def reg_topage3(message: Message, state: FSMContext):
+    await message.answer('Принято! Переходим на страницу 3', reply_markup=kb.faculty_three)
+
+
+@router.message(Reg.fped)
+async def reg_s5ped(message: Message, state: FSMContext):
+    await state.update_data(faculty=message.text)
+    await message.answer('Понял, принял, теперь напиши на каком ты курсе. Достатточно просто отправить цифру в чат',
+                         reply_markup=kb.base_key)
+    await state.set_state(Reg.qcourse)
+
+
+@router.message(Reg.qcourse)
+async def reg_s6(message: Message, state: FSMContext):
+    await state.update_data(course=message.text)
+    reg_info = await state.get_data()
+    await message.answer(f'Регистрация успешно завершена. Поздравляю!)\n\n'
+                         f'Давай всё проверим.\n'
+                         f'Тебя зовут {reg_info['name']} {reg_info['sname']}\n'
+                         f'Ты из педа: {reg_info["instit"]}\n'
+                         f'твой факультет: {reg_info["faculty"]}\n'
+                         f'Курс: {reg_info["course"]}\n\n\n'
+                         f'*Если вы не учитесь в ЮУрГГПУ, мы не собираем информацию о Вашем факультете')
+    await state.clear()
 
 
 @router.message(Command('hell'))
 async def hell_comand(message: Message):
-    await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!")
+    await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!", reply_markup=kb.base_key)
+
+@router.message(F.text == 'СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')
+async def delall(message: Message):
+    await message.answer('ВСЁ СГОРЕЛО НАХУЙ! Теперь можно возвращаться в начало.\n\n'
+                         'Нажми на 👉 /start')
+
+

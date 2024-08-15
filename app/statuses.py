@@ -10,3 +10,4 @@ class Reg(StatesGroup):
     noped = State()
     qfaculty = State()
     qcourse = State()
+    fcheck = State

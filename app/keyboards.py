@@ -1,38 +1,45 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-# main = InlineKeyboardMarkup(inline_keyboard=[
-#     [InlineKeyboardButton(text='Каталог', callback_data='catalog')],
-#     [InlineKeyboardButton(text='Корзина', callback_data='basket'),
-#      InlineKeyboardButton(text='Контакты', callback_data='contact')]])
+# main = ReplyKeyboardMarkup(inline_keyboard=[
+#     [KeyboardButton(text='Каталог', callback_data='catalog')],
+#     [KeyboardButton(text='Корзина', callback_data='basket'),
+#      KeyboardButton(text='Контакты', callback_data='contact')]])
 
-# settings = InlineKeyboardMarkup(inline_keyboard=[
-#     [InlineKeyboardButton(text='YT', url='https://youtube.com/@sudoteach')]
+# settings = ReplyKeyboardMarkup(inline_keyboard=[
+#     [KeyboardButton(text='YT', url='https://youtube.com/@sudoteach')]
 # ])
 
 
-faculty_one = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Естественно-технологический факультет', callback_data='et')],
-    [InlineKeyboardButton(text='Высшая шк. физической культуры и спорта', callback_data='sport')],
-    [InlineKeyboardButton(text='Исторический факультет', callback_data='ist')],
-    [InlineKeyboardButton(text='Факультет дошкольного образования', callback_data='doshfak')],
-    [InlineKeyboardButton(text=':right: Далее', callback_data='1to2')]
+faculty_one = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='Естественно-технологический факультет')],
+    [KeyboardButton(text='Высшая шк. физической культуры и спорта')],
+    [KeyboardButton(text='Исторический факультет')],
+    [KeyboardButton(text='Факультет дошкольного образования')],
+    [KeyboardButton(text='➡️На стр. 2')]
 ])
 
-faculty_two = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Факультет инклюзивного и коррекц. образования', callback_data='fiko')],
-    [InlineKeyboardButton(text='Факультет иностранных языков', callback_data='inyaz')],
-    [InlineKeyboardButton(text='Факультет математики, физики и информатики', callback_data='mfi')],
-    [InlineKeyboardButton(text='Факультет подгот. учителей начальных классов', callback_data='unk')],
-    [InlineKeyboardButton(text='след. страница', callback_data='2to3')],
-    [InlineKeyboardButton(text='Пред. страница', callback_data='2to1')]
+faculty_two = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='Факультет инклюзивного и коррекц. образования')],
+    [KeyboardButton(text='Факультет иностранных языков')],
+    [KeyboardButton(text='Факультет математики, физики и информатики')],
+    [KeyboardButton(text='Факультет подгот. учителей начальных классов')],
+    [KeyboardButton(text='➡️На стр. 3')],
+    [KeyboardButton(text='⬅️На стр. 1')]
 ])
 
-faculty_three = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Филологический факультет', callback_data='filfak')],
-    [InlineKeyboardButton(text='Колледж', callback_data='colege')],
-    [InlineKeyboardButton(text='Факультет психологии', callback_data='psifak')],
-    [InlineKeyboardButton(text='Профессионально-педагогический институт', callback_data='ppi')],
-    [InlineKeyboardButton(text='Пред. страница', callback_data='3to2')]
+faculty_three = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='Филологический факультет')],
+    [KeyboardButton(text='Колледж')],
+    [KeyboardButton(text='Факультет психологии')],
+    [KeyboardButton(text='Профессионально-педагогический институт')],
+    [KeyboardButton(text='⬅️На стр. 2')]
 ])
 
+ped_question = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+    [KeyboardButton(text='✅Да'), KeyboardButton(text='❌Нет')]
+])
+
+base_key = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+    [KeyboardButton(text='СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')]
+])
 
