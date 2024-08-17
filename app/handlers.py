@@ -1,3 +1,6 @@
+#Файл, в котором прописанны хэндлеры, отвечающие за регистрацию пользователей
+
+
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -6,8 +9,12 @@ from aiogram import Router, F
 
 import app.keyboards as kb
 from app.statuses import Reg
+import DBcontrol
 
 router = Router()
+
+reg_info = {}
+
 
 
 @router.message(Command("help"))
@@ -39,7 +46,7 @@ async def reg_s2(message: Message, state: FSMContext):
 async def reg_s3(message: Message, state: FSMContext):
     await state.update_data(sname=message.text)
     await state.set_state(Reg.qinstit)
-    await message.answer("Ты из педагогического?", reply_markup=kb.ped_question)
+    await message.answer("Ты из педагогического?", reply_markup=kb.YNkeyb)
 
 
 @router.message(Reg.qinstit)
@@ -78,22 +85,37 @@ async def reg_s5ped(message: Message, state: FSMContext):
 
 
 @router.message(Reg.qcourse)
-async def reg_s6(message: Message, state: FSMContext):
+async def check_reg(message: Message, state: FSMContext):
     await state.update_data(course=message.text)
-    reg_info = await state.get_data()
-    await message.answer(f'Регистрация успешно завершена. Поздравляю!)\n\n'
+    info = await state.get_data()
+    global reg_info
+    reg_info[str(message.from_user.id)] = info
+    # print(reg_info)
+    await message.answer(f'Я понял тебя. Все данные записаны. Поздравляю!)\n\n'
                          f'Давай всё проверим.\n'
-                         f'Тебя зовут {reg_info['name']} {reg_info['sname']}\n'
-                         f'Ты из педа: {reg_info["instit"]}\n'
-                         f'твой факультет: {reg_info["faculty"]}\n'
-                         f'Курс: {reg_info["course"]}\n\n\n'
+                         f'Тебя зовут {reg_info[str(message.from_user.id)]['name']} {reg_info[str(message.from_user.id)]['sname']}\n'
+                         f'Ты из педа: {reg_info[str(message.from_user.id)]["instit"]}\n'
+                         f'твой факультет: {reg_info[str(message.from_user.id)]["faculty"]}\n'
+                         f'Курс: {reg_info[str(message.from_user.id)]["course"]}\n\n\n'
                          f'*Если вы не учитесь в ЮУрГГПУ, мы не собираем информацию о Вашем факультете')
-    await state.clear()
+    await message.answer('Всё правильно?', reply_markup=kb.YNkeyb)
+    await state.set_state(Reg.fcheck)
+
+
+@router.message(Reg.fcheck)
+async def FinCheck(message: Message, state: FSMContext):
+    if message.text == '✅Да':
+        await message.answer('Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!')
+        await DBcontrol.sent_registData(reg_info)
+        await state.clear()
+    if message.text == '❌Нет':
+        await message.answer('Ой, давай попробуем пройти пройти регистрацию еще раз. '
+                             'Если снова не получится, я передам информацию о проблеме в техническую поддержку.\n\n'
+                             'Нажми 👉 /start')
+        # Сделать уведомление для админов о проблемушках
+
 
 
 @router.message(Command('hell'))
 async def hell_comand(message: Message):
     await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!", reply_markup=kb.base_key)
-
-
-

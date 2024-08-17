@@ -35,7 +35,7 @@ faculty_three = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='⬅️На стр. 2')]
 ])
 
-ped_question = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+YNkeyb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [KeyboardButton(text='✅Да'), KeyboardButton(text='❌Нет')]
 ])
 
