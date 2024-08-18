@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F
 
+
 import app.keyboards as kb
 from app.statuses import Reg
 import DBcontrol
@@ -25,8 +26,12 @@ async def help_comand(message: Message):
 @router.message(Command('start'))
 async def start_comand(message: Message, state: FSMContext):
     await message.answer("Привет! Меня зовут Игрик. Я бот-помощник клуба настольных игр 'Играриум'. Давай знакомиться.")
-    await state.set_state(Reg.qname)
-    await message.answer("Введите свое имя")
+    if DBcontrol.RegistrDB.FindID(int(message.from_user.id)):
+        await message.answer('С возвращением!')
+    else:
+        DBcontrol.RegistrDB.sentID(int(message.from_user.id))
+        await state.set_state(Reg.qname)
+        await message.answer("Введите свое имя")
 
 
 @router.message(F.text == 'СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')
@@ -38,6 +43,7 @@ async def delall(message: Message):
 @router.message(Reg.qname)
 async def reg_s2(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
+    DBcontrol.RegistrDB.sentName(int(message.from_user.id), message.text)
     await state.set_state(Reg.qsname)
     await message.answer("Введите фамилию")
 
@@ -106,6 +112,7 @@ async def check_reg(message: Message, state: FSMContext):
 async def FinCheck(message: Message, state: FSMContext):
     if message.text == '✅Да':
         await message.answer('Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!')
+        import DBcontrol
         await DBcontrol.sent_registData(reg_info)
         await state.clear()
     if message.text == '❌Нет':
