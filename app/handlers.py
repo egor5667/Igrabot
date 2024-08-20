@@ -9,7 +9,8 @@ from aiogram import Router, F
 
 
 import app.keyboards as kb
-from app.statuses import Reg
+from testconf import ADM_IDS
+from app.statuses import Reg, AdmStatus
 import DBcontrol
 
 router = Router()
@@ -32,6 +33,12 @@ async def start_comand(message: Message, state: FSMContext):
         DBcontrol.RegistrDB.sentID(int(message.from_user.id))
         await state.set_state(Reg.qname)
         await message.answer("Введите свое имя")
+    if ADM_IDS.count(str(message.from_user.id)) > 0:
+        DBcontrol.RegistrDB.sentRole(int(message.from_user.id), 'adm')
+        await state.set_state(AdmStatus.qact)
+        await message.answer('Здравствуйте! Вам назначена роль "Администратор"', reply_markup=kb.KeyAdm.menuKey)
+    else:
+        DBcontrol.RegistrDB.sentRole(int(message.from_user.id), 'chlen')
 
 
 @router.message(F.text == 'СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')
@@ -51,6 +58,7 @@ async def reg_s2(message: Message, state: FSMContext):
 @router.message(Reg.qsname)
 async def reg_s3(message: Message, state: FSMContext):
     await state.update_data(sname=message.text)
+    DBcontrol.RegistrDB.sentSName(int(message.from_user.id), str(message.text))
     await state.set_state(Reg.qinstit)
     await message.answer("Ты из педагогического?", reply_markup=kb.YNkeyb)
 
@@ -65,6 +73,7 @@ async def reg_s4(message: Message, state: FSMContext):
         await message.answer('Понял, принял, теперь напиши на каком ты курсе. Достатточно просто отправить цифру в чат')
         await state.update_data(faculty='Нет информации*')
         await state.set_state(Reg.qcourse)
+    DBcontrol.RegistrDB.sentInstitute(int(message.from_user.id), str(message.text))
 
 
 @router.message(Reg.fped, F.text == '⬅️На стр. 1')
@@ -85,7 +94,8 @@ async def reg_topage3(message: Message, state: FSMContext):
 @router.message(Reg.fped)
 async def reg_s5ped(message: Message, state: FSMContext):
     await state.update_data(faculty=message.text)
-    await message.answer('Понял, принял, теперь напиши на каком ты курсе. Достатточно просто отправить цифру в чат',
+    DBcontrol.RegistrDB.sentFacult(int(message.from_user.id), str(message.text))
+    await message.answer('Понял, принял, теперь напиши на каком ты курсе. Достаточно просто отправить цифру в чат',
                          reply_markup=kb.base_key)
     await state.set_state(Reg.qcourse)
 
@@ -93,6 +103,7 @@ async def reg_s5ped(message: Message, state: FSMContext):
 @router.message(Reg.qcourse)
 async def check_reg(message: Message, state: FSMContext):
     await state.update_data(course=message.text)
+    DBcontrol.RegistrDB.sentCourse(int(message.from_user.id), str(message.text))
     info = await state.get_data()
     global reg_info
     reg_info[str(message.from_user.id)] = info
@@ -113,7 +124,7 @@ async def FinCheck(message: Message, state: FSMContext):
     if message.text == '✅Да':
         await message.answer('Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!')
         import DBcontrol
-        await DBcontrol.sent_registData(reg_info)
+        # await DBcontrol.sent_registData(reg_info)
         await state.clear()
     if message.text == '❌Нет':
         await message.answer('Ой, давай попробуем пройти пройти регистрацию еще раз. '
@@ -126,3 +137,9 @@ async def FinCheck(message: Message, state: FSMContext):
 @router.message(Command('hell'))
 async def hell_comand(message: Message):
     await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!", reply_markup=kb.base_key)
+
+
+
+@router.message(AdmStatus.qact)
+async def GetAdmAct(message: Message, state: FSMContext):
+    pass

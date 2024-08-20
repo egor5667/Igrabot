@@ -11,7 +11,8 @@ cur.execute(
     'sname varchar(50),'
     'inst varchar(5),'
     'faculty varchar(60),'
-    'course int)')
+    'course int,'
+    'role varchar(10))')
 conn.commit()
 cur.close()
 
@@ -61,11 +62,19 @@ class RegistrDB:
 
     def FindID(telegramID):
         cur = conn.cursor()
-        inf = cur.execute('SELECT * FROM users WHERE TgId = ? , (telegramID, )')
+        inf = cur.execute('SELECT * FROM users WHERE TgId = ? ', (telegramID,))
         if inf.fetchone() is None:
             return False
         else:
             return True
+
+    def sentRole(uid, role):
+        cur = conn.cursor()
+        cur.execute('UPDATE users SET (role) = ? WHERE TgId = ?', (str(role), uid))
+        conn.commit()
+        cur.close()
+
+
 
 
 

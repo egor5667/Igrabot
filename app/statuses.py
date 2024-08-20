@@ -11,3 +11,6 @@ class Reg(StatesGroup):
     qfaculty = State()
     qcourse = State()
     fcheck = State()
+
+class AdmStatus(StatesGroup):
+    qact = State()

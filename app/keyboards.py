@@ -43,3 +43,13 @@ base_key = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [KeyboardButton(text='СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')]
 ])
 
+
+class KeyAdm:
+    menuKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+        [KeyboardButton(text='Встречи')]
+    ])
+    meetKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+        [KeyboardButton(text='Начать встречу')],
+        [KeyboardButton(text='Завершить встречу')]
+    ])
+
