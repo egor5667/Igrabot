@@ -46,10 +46,15 @@ base_key = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 
 class KeyAdm:
     menuKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-        [KeyboardButton(text='Встречи')]
+        [KeyboardButton(text='Встречи')],
+        [KeyboardButton(text='Создать рассылку')]
     ])
     meetKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
         [KeyboardButton(text='Начать встречу')],
         [KeyboardButton(text='Завершить встречу')]
+    ])
+    sendKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+        [KeyboardButton(text='Завершить создание рассылки')],
+        [KeyboardButton(text='Редактировать текст')]
     ])
 

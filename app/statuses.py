@@ -14,3 +14,13 @@ class Reg(StatesGroup):
 
 class AdmStatus(StatesGroup):
     qact = State()
+    meets = State()
+    qTextsends = State()
+    confsends = State()
+
+
+
+class feedBackForms(StatesGroup):
+    startForm = State()
+
+

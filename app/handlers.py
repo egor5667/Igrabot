@@ -1,17 +1,25 @@
 #Файл, в котором прописанны хэндлеры, отвечающие за регистрацию пользователей
-
+from datetime import datetime
+from time import sleep
 
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 
+from testconf import TOKEN_API
+bot = Bot(token=TOKEN_API)
 
 import app.keyboards as kb
-from testconf import ADM_IDS
+from app.keyboards import KeyAdm
+from config import SPEC_ROLE
+from lerning import users
+from testconf import ADM_IDS, SPEC_ROLE
 from app.statuses import Reg, AdmStatus
 import DBcontrol
+from  app.Timecontrol import TimeCount
+from app.sendler import sedText
 
 router = Router()
 
@@ -26,17 +34,20 @@ async def help_comand(message: Message):
 
 @router.message(Command('start'))
 async def start_comand(message: Message, state: FSMContext):
-    await message.answer("Привет! Меня зовут Игрик. Я бот-помощник клуба настольных игр 'Играриум'. Давай знакомиться.")
+    await message.answer("Привет! Меня зовут Игрик. Я бот-помощник клуба настольных игр 'Играриум'.")
     if DBcontrol.RegistrDB.FindID(int(message.from_user.id)):
         await message.answer('С возвращением!')
     else:
         DBcontrol.RegistrDB.sentID(int(message.from_user.id))
         await state.set_state(Reg.qname)
-        await message.answer("Введите свое имя")
+        await message.answer("Давай знакомиться! \n"
+                             "Введите свое имя")
     if ADM_IDS.count(str(message.from_user.id)) > 0:
         DBcontrol.RegistrDB.sentRole(int(message.from_user.id), 'adm')
+        if SPEC_ROLE.count(str(message.from_user.id)) > 0:
+            await message.answer('Вам назначена роль "Конь-в-пальто". Поздравляю!')
         await state.set_state(AdmStatus.qact)
-        await message.answer('Здравствуйте! Вам назначена роль "Администратор"', reply_markup=kb.KeyAdm.menuKey)
+        await message.answer('Вам назначена роль "Администратор"', reply_markup=kb.KeyAdm.menuKey)
     else:
         DBcontrol.RegistrDB.sentRole(int(message.from_user.id), 'chlen')
 
@@ -142,4 +153,54 @@ async def hell_comand(message: Message):
 
 @router.message(AdmStatus.qact)
 async def GetAdmAct(message: Message, state: FSMContext):
-    pass
+    if message.text == 'Встречи':
+        await message.answer('Выберите действие', reply_markup=KeyAdm.meetKey)
+        await state.set_state(AdmStatus.meets)
+    elif message.text == 'Создать рассылку':
+        await message.answer('Введите текст расылки')
+        await state.set_state(AdmStatus.qTextsends)
+
+@router.message(AdmStatus.meets)
+async def GetMeets(message: Message, state: FSMContext):
+    if message.text == 'Начать встречу':
+        global st_meet
+        st_meet = datetime.now()
+        await message.answer(f'Вы запустили встречу в {st_meet.strftime("%H:%M")}')
+
+    elif message.text == 'Завершить встречу':
+        end_meet = datetime.now()
+        await message.answer('Встреча завершется...')
+        DBcontrol.Meets.sendMeetData(datetime.now().strftime("%d.%m.%Y"),
+                                     st_meet.strftime("%H:%M"),
+                                     end_meet.strftime("%H:%M"),
+                                     TimeCount(st_meet, end_meet))
+        sleep(5)
+        await message.answer(f'Встреча завершена в {end_meet.strftime("%H:%M")}. \n\n '
+                             f'Длительность встречи: {TimeCount(st_meet, end_meet)} секунд', reply_markup=KeyAdm.menuKey)
+        await state.set_state(AdmStatus.qact)
+
+@router.message(AdmStatus.qTextsends)
+async def GetSendText(message: Message, state: FSMContext):
+    global sendlerText
+    sendlerText = message.text
+    await message.answer(f'Проверьте текст рассылки \n\n'
+                         f'{sendlerText}', reply_markup=KeyAdm.sendKey)
+    await state.set_state(AdmStatus.confsends)
+
+@router.message(AdmStatus.confsends)
+async def GetSendText(message: Message, state: FSMContext):
+    if message.text == 'Завершить создание рассылки':
+        await message.answer('Отправляю сообщения...')
+        users = DBcontrol.rassl.getUsersID('adm')
+        await sedText(users, sendlerText)
+        await message.answer('Успешная рассылка')
+
+    elif message.text == 'Редактировать текст':
+        await message.answer('Давай поновый. Всё хуйня. Вводи всё еще раз.')
+        await state.set_state(AdmStatus.qTextsends)
+
+
+
+
+
+
