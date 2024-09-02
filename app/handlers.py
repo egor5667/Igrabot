@@ -1,25 +1,23 @@
-#Файл, в котором прописанны хэндлеры, отвечающие за регистрацию пользователей
+#Файл, в котором прописанны хэндлеры, отвечающие за взаимодействие с пользователями
 from datetime import datetime
 from time import sleep
 
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F, Bot
 
 from testconf import TOKEN_API
 bot = Bot(token=TOKEN_API)
 
 import app.keyboards as kb
-from app.keyboards import KeyAdm
-from config import SPEC_ROLE
-from lerning import users
+from app.keyboards import KeyAdm, base_key
 from testconf import ADM_IDS, SPEC_ROLE
-from app.statuses import Reg, AdmStatus
+from app.statuses import Reg, AdmStatus, userMenu
 import DBcontrol
 from  app.Timecontrol import TimeCount
 from app.sendler import sedText
+import AchiveControl
 
 router = Router()
 
@@ -29,14 +27,16 @@ reg_info = {}
 
 @router.message(Command("help"))
 async def help_comand(message: Message):
-    await message.reply("Какой-то текст")
+    await message.reply("Я буду напоминатьо вам о встречах, раздавать достижения в клубе и сообщать важную информацию.")
 
 
 @router.message(Command('start'))
 async def start_comand(message: Message, state: FSMContext):
     await message.answer("Привет! Меня зовут Игрик. Я бот-помощник клуба настольных игр 'Играриум'.")
+    await message.answer('Из-за большого количества запросов время ответа может быть увеличено.\n Спасибо за понимание.')
     if DBcontrol.RegistrDB.FindID(int(message.from_user.id)):
-        await message.answer('С возвращением!')
+        await message.answer('С возвращением! Хотите отредактировать свои данные?', reply_markup=base_key)
+        await state.set_state(userMenu.qact)
     else:
         DBcontrol.RegistrDB.sentID(int(message.from_user.id))
         await state.set_state(Reg.qname)
@@ -106,8 +106,7 @@ async def reg_topage3(message: Message, state: FSMContext):
 async def reg_s5ped(message: Message, state: FSMContext):
     await state.update_data(faculty=message.text)
     DBcontrol.RegistrDB.sentFacult(int(message.from_user.id), str(message.text))
-    await message.answer('Понял, принял, теперь напиши на каком ты курсе. Достаточно просто отправить цифру в чат',
-                         reply_markup=kb.base_key)
+    await message.answer('Понял, принял, теперь напиши на каком ты курсе. Достаточно просто отправить цифру в чат')
     await state.set_state(Reg.qcourse)
 
 
@@ -133,21 +132,50 @@ async def check_reg(message: Message, state: FSMContext):
 @router.message(Reg.fcheck)
 async def FinCheck(message: Message, state: FSMContext):
     if message.text == '✅Да':
-        await message.answer('Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!')
-        import DBcontrol
-        # await DBcontrol.sent_registData(reg_info)
-        await state.clear()
+        await message.answer_photo(photo = 'AgACAgIAAxkBAAICm2bUdxAgj2vU6NzkyzLftKfofBQtAALR3jEbFY6hSidi3586Bn4rAQADAgADeQADNQQ',
+                                   caption ='Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!',
+                                   reply_markup=base_key)
+        await message.answer(AchiveControl.AchFReg.getRegAch(message.from_user.id))
+        await message.answer_sticker('CAACAgIAAxkBAAICnmbUdyeDAevdrt88kPc9EI5pwmugAAIYVQACFThpSoaY4Mhc9xoLNQQ')
+        await state.set_state(userMenu.qact)
+        del reg_info[str(message.from_user.id)]
     if message.text == '❌Нет':
         await message.answer('Ой, давай попробуем пройти пройти регистрацию еще раз. '
                              'Если снова не получится, я передам информацию о проблеме в техническую поддержку.\n\n'
-                             'Нажми 👉 /start')
-        # Сделать уведомление для админов о проблемушках
+                             'Нажми 👉 /start и выберите "Редактирование профиля"')
+        await bot.send_message(ADM_IDS[0], f'АЛАРМ! У пользователя с id"{reg_info[str(message.from_user.id)]['name']}"'
+                                           f' проблемы с регистрацией. Пожалуйста уточни у него, всё ли хорошо.')
 
 
+@router.message(userMenu.qact)
+async def startUserMenu(message: Message, state: FSMContext):
+    if message.text == 'Профиль':
+        await message.answer(f'И так, что мы знаем о тебе?\n'
+                             f'Имя: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['name']} \n'
+                             f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['sname']}\n'
+                             f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)['institute']}\n'
+                             f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['facult']}\n'
+                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['course']}'
+                             f'Посетил встреч: Информация о встречах скоро станет доступна. Следите за обновлниями бота.')
+        await state.set_state(userMenu.qprof)
+    elif message.text == 'Редактировать профиль':
+        await message.answer('Переходим в режим редактирования. Введи свое имя')
+        await state.set_state(Reg.qname)
+    elif message.text == 'Мне нужна помощь!':
+        await message.answer('Напишите пожалуйста, в чем проблема и мы передадим Ваше обращение в поддержку.')
+        await state.set_state(userMenu.qhelp)
 
-@router.message(Command('hell'))
-async def hell_comand(message: Message):
-    await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!", reply_markup=kb.base_key)
+@router.message(userMenu.qhelp)
+async def sendHelp(message: Message, state: FSMContext):
+    text = message.text
+    await bot.send_message(ADM_IDS[0], f'Новое обращение: \n\n'
+                                       f'{text} \n\n'
+                                       f'От пользователя: @{message.from_user.username}')
+    await message.answer('Я передал Ваше обращение в поддержку. В ближайшее время c Вами свяжутся.')
+
+# @router.message(Command('hell'))
+# async def hell_comand(message: Message):
+#     await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!", reply_markup=kb.base_key)
 
 
 
@@ -159,6 +187,22 @@ async def GetAdmAct(message: Message, state: FSMContext):
     elif message.text == 'Создать рассылку':
         await message.answer('Введите текст расылки')
         await state.set_state(AdmStatus.qTextsends)
+    elif message.text == 'Получить ID фото':
+        await message.answer('Отправьте фото и я напишу его ID в терминал')
+        await state.set_state(AdmStatus.phoID)
+    elif message.text == 'Получить стикер ID':
+        await message.answer('Отправьте стикер')
+        await state.set_state(AdmStatus.stikID)
+
+@router.message(AdmStatus.phoID)
+async def sendPhotoId(message: Message, state: FSMContext):
+    print(f'photo: {message.photo[-1].file_id}')
+    await state.set_state(AdmStatus.qact)
+
+@router.message(AdmStatus.stikID)
+async def sendStikId(message: Message, state: FSMContext):
+    print(f'stiker: {message.sticker.file_id}')
+    await state.set_state(AdmStatus.qact)
 
 @router.message(AdmStatus.meets)
 async def GetMeets(message: Message, state: FSMContext):
@@ -188,13 +232,13 @@ async def GetSendText(message: Message, state: FSMContext):
     await state.set_state(AdmStatus.confsends)
 
 @router.message(AdmStatus.confsends)
-async def GetSendText(message: Message, state: FSMContext):
+async def EndSendText(message: Message, state: FSMContext):
     if message.text == 'Завершить создание рассылки':
         await message.answer('Отправляю сообщения...')
         users = DBcontrol.rassl.getUsersID('adm')
         await sedText(users, sendlerText)
-        await message.answer('Успешная рассылка')
-
+        await message.answer('Успешная рассылка', reply_markup=KeyAdm.menuKey)
+        await state.set_state(AdmStatus.qact)
     elif message.text == 'Редактировать текст':
         await message.answer('Давай поновый. Всё хуйня. Вводи всё еще раз.')
         await state.set_state(AdmStatus.qTextsends)

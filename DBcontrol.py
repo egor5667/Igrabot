@@ -1,6 +1,7 @@
 # Файл взаимодействия с БД
 
 import sqlite3
+from turtledemo.penrose import inflatedart
 
 conn = sqlite3.connect('Igrarium.db')
 cur = conn.cursor()
@@ -97,9 +98,45 @@ class rassl:
         conn.commit()
         cur.close()
 
+class Achives:
+    def AddAchive(uid, servname):
+        cur = conn.cursor()
+        cur.execute('INSERT INTO achives (TgId, servName) VALUES (?, ?)', (uid, servname))
+        conn.commit()
+        cur.close()
+
+    def SerchAchive(uid, ach):
+        cur = conn.cursor()
+        inf = cur.execute('SELECT * FROM achives WHERE TgId = ?', (uid,)).fetchall()
+        conn.commit()
+        cur.close()
+        k = 0
+        res = []
+        for k in range(len(inf)):
+            res.append(inf[k][2])
+            k += 1
+        if ach in res:
+            return True
+        return False
 
 
 
+
+
+class GetData:
+    def GetUserInfo(uid):
+        cur = conn.cursor()
+        cData = cur.execute('SELECT * FROM users WHERE TgId = ?', (uid,)).fetchone()
+        inf = {'uid' : cData[0],
+               'name' : cData[1],
+               'sname' : cData[2],
+               'institute' : cData[3],
+               'facult' : cData[4],
+               'course' : cData[5],
+               'role' : cData[6]}
+        conn.commit()
+        cur.close()
+        return inf
 
 
 

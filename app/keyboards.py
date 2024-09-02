@@ -40,14 +40,18 @@ YNkeyb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 ])
 
 base_key = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-    [KeyboardButton(text='СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')]
+    [KeyboardButton(text='Профиль')],
+    [KeyboardButton(text='Редактировать профиль')],
+    [KeyboardButton(text='Мне нужна помощь!')]
 ])
 
 
 class KeyAdm:
     menuKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
         [KeyboardButton(text='Встречи')],
-        [KeyboardButton(text='Создать рассылку')]
+        [KeyboardButton(text='Создать рассылку')],
+        [KeyboardButton(text='Получить ID фото')],
+        [KeyboardButton(text='Получить стикер ID')]
     ])
     meetKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
         [KeyboardButton(text='Начать встречу')],

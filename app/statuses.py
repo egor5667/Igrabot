@@ -17,10 +17,17 @@ class AdmStatus(StatesGroup):
     meets = State()
     qTextsends = State()
     confsends = State()
+    phoID = State()
+    stikID = State()
 
 
 
 class feedBackForms(StatesGroup):
     startForm = State()
+
+class userMenu(StatesGroup):
+    qact = State()
+    qhelp = State()
+    qprof = State()
 
 

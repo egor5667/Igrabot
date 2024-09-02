@@ -5,6 +5,7 @@ from testconf import TOKEN_API
 bot = Bot(token=TOKEN_API)
 
 
+
 async def sedText(users, text):
     for row in users:
         try:
