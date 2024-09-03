@@ -11,9 +11,9 @@ from testconf import TOKEN_API
 bot = Bot(token=TOKEN_API)
 
 import app.keyboards as kb
-from app.keyboards import KeyAdm, base_key
+from app.keyboards import KeyAdm, base_key, editKey
 from testconf import ADM_IDS, SPEC_ROLE
-from app.statuses import Reg, AdmStatus, userMenu
+from app.statuses import Reg, AdmStatus, userMenu, editProfile
 import DBcontrol
 from  app.Timecontrol import TimeCount
 from app.sendler import sedText
@@ -38,7 +38,7 @@ async def start_comand(message: Message, state: FSMContext):
         text = AchiveControl.AchFReg.getRegAch(message.from_user.id)
         if text != 'None':
             await message.answer(text)
-        await message.answer('С возвращением! Хотите отредактировать свои данные?', reply_markup=base_key)
+        await message.answer('С возвращением!', reply_markup=base_key)
         await state.set_state(userMenu.qact)
     else:
         DBcontrol.RegistrDB.sentID(int(message.from_user.id))
@@ -158,12 +158,57 @@ async def startUserMenu(message: Message, state: FSMContext):
                              f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["sname"]}\n'
                              f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)["institute"]}\n'
                              f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["facult"]}\n'
-                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["course"]}'
+                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["course"]} \n\n'
                              f'Посетил встреч: Информация о встречах скоро станет доступна. Следите за обновлниями бота.')
-        await state.set_state(userMenu.qprof)
     elif message.text == 'Мне нужна помощь!':
         await message.answer('Напишите пожалуйста, в чем проблема и мы передадим Ваше обращение в поддержку.')
         await state.set_state(userMenu.qhelp)
+    elif message.text == 'Редактировать профиль':
+        await message.answer('Выберите что нужно отредактировать', reply_markup=editKey)
+        await state.set_state(editProfile.qedit)
+
+@router.message(editProfile.qedit)
+async def choseEdit(message: Message, state: FSMContext):
+    if message.text == 'Имя':
+        await message.answer('Введите нове имя')
+        await state.set_state(editProfile.editname)
+    elif message.text == 'Фамилия':
+        await message.answer('Введите новую фамилию')
+        await state.set_state(editProfile.editsname)
+    elif message.text == 'Факультет':
+        await message.answer('Введите новый факультет')
+        await state.set_state(editProfile.editFaculty)
+    elif message.text == 'Курс':
+        await message.answer('Введите новый курс')
+        await state.set_state(editProfile.editCourse)
+    elif message.text == 'Завершить редактирование':
+        await message.answer('Понял, принял. Редактирование завершено', reply_markup=base_key)
+        await state.set_state(userMenu.qact)
+
+@router.message(editProfile.editname)
+async def editProfileName(message: Message, state: FSMContext):
+    DBcontrol.RegistrDB.sentName(message.from_user.id, message.text)
+    await message.answer('Имя отредактировано', reply_markup=editKey)
+    await state.set_state(editProfile.qedit)
+
+@router.message(editProfile.editsname)
+async def editProfileSname(message: Message, state: FSMContext):
+    DBcontrol.RegistrDB.sentSName(message.from_user.id, message.text)
+    await message.answer('Фамилия отредактирована', reply_markup=editKey)
+    await state.set_state(editProfile.qedit)
+
+@router.message(editProfile.editFaculty)
+async def editProfileFaculty(message: Message, state: FSMContext):
+    DBcontrol.RegistrDB.sentFacult(message.from_user.id, message.text)
+    await message.answer('Факультет отредактирован', reply_markup=editKey)
+    await state.set_state(editProfile.qedit)
+
+@router.message(editProfile.editCourse)
+async def editProfileCourse(message: Message, state: FSMContext):
+    DBcontrol.RegistrDB.sentCourse(message.from_user.id, message.text)
+    await message.answer('Курс отредактирован', reply_markup=editKey)
+    await state.set_state(editProfile.qedit)
+
 
 @router.message(userMenu.qhelp)
 async def sendHelp(message: Message, state: FSMContext):

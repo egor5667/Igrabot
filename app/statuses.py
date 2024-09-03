@@ -23,7 +23,12 @@ class AdmStatus(StatesGroup):
     qRolesends = State()
     qsendID = State()
 
-
+class editProfile(StatesGroup):
+    qedit = State()
+    editname = State()
+    editsname = State()
+    editFaculty = State()
+    editCourse = State()
 
 class feedBackForms(StatesGroup):
     startForm = State()

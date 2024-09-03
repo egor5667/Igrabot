@@ -41,9 +41,15 @@ YNkeyb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 
 base_key = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [KeyboardButton(text='Профиль')],
+    [KeyboardButton(text='Редактировать профиль')],
     [KeyboardButton(text='Мне нужна помощь!')]
 ])
 
+editKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+    [KeyboardButton(text='Имя'), KeyboardButton(text='Фамилия')],
+    [KeyboardButton(text='Факультет'), KeyboardButton(text='Курс')],
+    [KeyboardButton(text='Завершить редактирование')]
+])
 
 class KeyAdm:
     menuKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
