@@ -35,6 +35,9 @@ async def start_comand(message: Message, state: FSMContext):
     await message.answer("Привет! Меня зовут Игрик. Я бот-помощник клуба настольных игр 'Играриум'.")
     await message.answer('Из-за большого количества запросов время ответа может быть увеличено.\n Спасибо за понимание.')
     if DBcontrol.RegistrDB.FindID(int(message.from_user.id)):
+        text = AchiveControl.AchFReg.getRegAch(message.from_user.id)
+        if text != 'None':
+            await message.answer(text)
         await message.answer('С возвращением! Хотите отредактировать свои данные?', reply_markup=base_key)
         await state.set_state(userMenu.qact)
     else:
@@ -120,7 +123,7 @@ async def check_reg(message: Message, state: FSMContext):
     # print(reg_info)
     await message.answer(f'Я понял тебя. Все данные записаны. Поздравляю!)\n\n'
                          f'Давай всё проверим.\n'
-                         f'Тебя зовут {reg_info[str(message.from_user.id)]['name']} {reg_info[str(message.from_user.id)]['sname']}\n'
+                         f'Тебя зовут {reg_info[str(message.from_user.id)]["name"]} {reg_info[str(message.from_user.id)]["sname"]}\n'
                          f'Ты из педа: {reg_info[str(message.from_user.id)]["instit"]}\n'
                          f'твой факультет: {reg_info[str(message.from_user.id)]["faculty"]}\n'
                          f'Курс: {reg_info[str(message.from_user.id)]["course"]}\n\n\n'
@@ -142,8 +145,8 @@ async def FinCheck(message: Message, state: FSMContext):
     if message.text == '❌Нет':
         await message.answer('Ой, давай попробуем пройти пройти регистрацию еще раз. '
                              'Если снова не получится, я передам информацию о проблеме в техническую поддержку.\n\n'
-                             'Нажми 👉 /start и выберите "Редактирование профиля"')
-        await bot.send_message(ADM_IDS[0], f'АЛАРМ! У пользователя с id"{reg_info[str(message.from_user.id)]['name']}"'
+                             'Нажми 👉 /start')
+        await bot.send_message(ADM_IDS[0], f'АЛАРМ! У пользователя с  @{message.from_user.username}"'
                                            f' проблемы с регистрацией. Пожалуйста уточни у него, всё ли хорошо.')
 
 
@@ -151,16 +154,13 @@ async def FinCheck(message: Message, state: FSMContext):
 async def startUserMenu(message: Message, state: FSMContext):
     if message.text == 'Профиль':
         await message.answer(f'И так, что мы знаем о тебе?\n'
-                             f'Имя: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['name']} \n'
-                             f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['sname']}\n'
-                             f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)['institute']}\n'
-                             f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['facult']}\n'
-                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)['course']}'
+                             f'Имя: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["name"]} \n'
+                             f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["sname"]}\n'
+                             f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)["institute"]}\n'
+                             f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["facult"]}\n'
+                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["course"]}'
                              f'Посетил встреч: Информация о встречах скоро станет доступна. Следите за обновлниями бота.')
         await state.set_state(userMenu.qprof)
-    elif message.text == 'Редактировать профиль':
-        await message.answer('Переходим в режим редактирования. Введи свое имя')
-        await state.set_state(Reg.qname)
     elif message.text == 'Мне нужна помощь!':
         await message.answer('Напишите пожалуйста, в чем проблема и мы передадим Ваше обращение в поддержку.')
         await state.set_state(userMenu.qhelp)
@@ -228,14 +228,50 @@ async def GetSendText(message: Message, state: FSMContext):
     global sendlerText
     sendlerText = message.text
     await message.answer(f'Проверьте текст рассылки \n\n'
-                         f'{sendlerText}', reply_markup=KeyAdm.sendKey)
-    await state.set_state(AdmStatus.confsends)
+                         f'{sendlerText}', reply_markup=KeyAdm.choseRole)
+    await state.set_state(AdmStatus.qRolesends)
+
+@router.message(AdmStatus.qRolesends)
+async def GetRoles(message: Message, state: FSMContext):
+    global sendlerRole
+    sendlerRole = ''
+    if message.text == 'Администраторы':
+        sendlerRole = 'adm'
+        await message.answer(f'Выбрана роль: {sendlerRole}', reply_markup=KeyAdm.sendKey)
+        await state.set_state(AdmStatus.confsends)
+    elif message.text == 'Участники':
+        sendlerRole = 'chlen'
+        await message.answer(f'Выбрана роль: {sendlerRole}', reply_markup=KeyAdm.sendKey)
+        await state.set_state(AdmStatus.confsends)
+    elif message.text == 'По ID':
+        await message.answer('Введите ID пользователя')
+        await state.set_state(AdmStatus.qsendID)
+
+@router.message(AdmStatus.qsendID)
+async def getsendID(message: Message, state: FSMContext):
+    global senID
+    senID = int(message.text)
+    await message.answer('Выбери действие', reply_markup=KeyAdm.sendKey)
+    await state.set_state(AdmStatus.confsendsID)
+
+@router.message(AdmStatus.confsendsID)
+async def EndIDsendText(message: Message, state: FSMContext):
+    if message.text == 'Завершить создание рассылки':
+        await message.answer('Отправляю сообщения...')
+        await bot.send_message(senID, sendlerText)
+        await message.answer('Успешная рассылка', reply_markup=KeyAdm.menuKey)
+        await state.set_state(AdmStatus.qact)
+    elif message.text == 'Редактировать текст':
+        await message.answer('Давай поновый. Всё хуйня. Вводи всё еще раз.')
+        await state.set_state(AdmStatus.qTextsends)
+
+
 
 @router.message(AdmStatus.confsends)
 async def EndSendText(message: Message, state: FSMContext):
     if message.text == 'Завершить создание рассылки':
         await message.answer('Отправляю сообщения...')
-        users = DBcontrol.rassl.getUsersID('adm')
+        users = DBcontrol.rassl.getUsersID(sendlerRole)
         await sedText(users, sendlerText)
         await message.answer('Успешная рассылка', reply_markup=KeyAdm.menuKey)
         await state.set_state(AdmStatus.qact)

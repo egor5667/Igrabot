@@ -17,8 +17,11 @@ class AdmStatus(StatesGroup):
     meets = State()
     qTextsends = State()
     confsends = State()
+    confsendsID = State()
     phoID = State()
     stikID = State()
+    qRolesends = State()
+    qsendID = State()
 
 
 

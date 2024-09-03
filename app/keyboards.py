@@ -41,7 +41,6 @@ YNkeyb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 
 base_key = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [KeyboardButton(text='Профиль')],
-    [KeyboardButton(text='Редактировать профиль')],
     [KeyboardButton(text='Мне нужна помощь!')]
 ])
 
@@ -56,6 +55,11 @@ class KeyAdm:
     meetKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
         [KeyboardButton(text='Начать встречу')],
         [KeyboardButton(text='Завершить встречу')]
+    ])
+    choseRole = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+        [KeyboardButton(text='Администраторы')],
+        [KeyboardButton(text='Участники')],
+        [KeyboardButton(text='По ID')]
     ])
     sendKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
         [KeyboardButton(text='Завершить создание рассылки')],

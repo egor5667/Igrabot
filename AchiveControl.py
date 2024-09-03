@@ -11,6 +11,7 @@ class AchFReg:
          text = 'Поздравляю! Вы получили достижение "Welcome to the club..."'
          Achives.AddAchive(uid, 'reg')
          return text
+      return 'None'
 
 
 
