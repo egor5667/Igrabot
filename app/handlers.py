@@ -8,7 +8,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram import Router, F, Bot
 
 from testconf import TOKEN_API
-bot = Bot(token=TOKEN_API)
 
 import app.keyboards as kb
 from app.keyboards import KeyAdm, base_key, editKey
@@ -20,6 +19,7 @@ from app.sendler import sedText
 import AchiveControl
 
 router = Router()
+bot = Bot(token=TOKEN_API)
 
 reg_info = {}
 
@@ -222,8 +222,6 @@ async def sendHelp(message: Message, state: FSMContext):
 # async def hell_comand(message: Message):
 #     await message.answer("ЭТО МОЁ БЛЯТЬ ДУШЕВНОЕ РАВНОВЕСИЕ!", reply_markup=kb.base_key)
 
-
-
 @router.message(AdmStatus.qact)
 async def GetAdmAct(message: Message, state: FSMContext):
     if message.text == 'Встречи':
@@ -259,10 +257,10 @@ async def GetMeets(message: Message, state: FSMContext):
     elif message.text == 'Завершить встречу':
         end_meet = datetime.now()
         await message.answer('Встреча завершется...')
-        DBcontrol.Meets.sendMeetData(datetime.now().strftime("%d.%m.%Y"),
-                                     st_meet.strftime("%H:%M"),
-                                     end_meet.strftime("%H:%M"),
-                                     TimeCount(st_meet, end_meet))
+        # DBcontrol.Meets.sendMeetData(datetime.now().strftime("%d.%m.%Y"),
+        #                              st_meet.strftime("%H:%M"),
+        #                              end_meet.strftime("%H:%M"),
+        #                              TimeCount(st_meet, end_meet))
         sleep(5)
         await message.answer(f'Встреча завершена в {end_meet.strftime("%H:%M")}. \n\n '
                              f'Длительность встречи: {TimeCount(st_meet, end_meet)} секунд', reply_markup=KeyAdm.menuKey)
@@ -309,8 +307,6 @@ async def EndIDsendText(message: Message, state: FSMContext):
     elif message.text == 'Редактировать текст':
         await message.answer('Давай поновый. Всё хуйня. Вводи всё еще раз.')
         await state.set_state(AdmStatus.qTextsends)
-
-
 
 @router.message(AdmStatus.confsends)
 async def EndSendText(message: Message, state: FSMContext):

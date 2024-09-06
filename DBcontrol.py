@@ -77,12 +77,23 @@ class RegistrDB:
 
 
 class Meets:
-    def sendMeetData(dat, tStart, tEnd, tTot):
+    def CreateMeetData(uid, dat, tStart):
         cur = conn.cursor()
-        cur.execute('INSERT INTO meets (date, tStart, tEnd, totTimeSec) '
-                    'VALUES (?, ?, ?, ?)', (dat, tStart, tEnd, tTot))
+        cur.execute('INSERT INTO meets (TgId, date, tStart,) '
+                    'VALUES (?, ?, ?)', (uid, dat, tStart,))
+        conn.commit()
+        inf = cur.execute('SELECT id FROM meets WHERE TgId = ? AND date = ?', (uid, dat)).fetchall()
         conn.commit()
         cur.close()
+        return inf
+
+    def CloseMeetData(wrId, tEnd, totTime):
+        cur = conn.cursor()
+        cur.execute('UPDATE meets SET (tEnd, totTimeSec) = ?, ? WHERE id = ?', (tEnd, totTime, wrId))
+        conn.commit()
+        cur.close()
+
+
 
 class rassl:
     def getUsersID(role):
