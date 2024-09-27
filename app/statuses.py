@@ -22,6 +22,13 @@ class AdmStatus(StatesGroup):
     stikID = State()
     qRolesends = State()
     qsendID = State()
+    startMeets = State()
+    TechGet = State()
+    controlPanel = State()
+    getUID = State()
+    startSendAchive = State()
+    endSendAchive = State()
+
 
 class editProfile(StatesGroup):
     qedit = State()

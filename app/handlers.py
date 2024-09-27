@@ -7,6 +7,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram import Router, F, Bot
 
+import MeetControl
 from testconf import TOKEN_API
 
 import app.keyboards as kb
@@ -17,6 +18,7 @@ import DBcontrol
 from  app.Timecontrol import TimeCount
 from app.sendler import sedText
 import AchiveControl
+from app import sendler
 
 router = Router()
 bot = Bot(token=TOKEN_API)
@@ -46,13 +48,13 @@ async def start_comand(message: Message, state: FSMContext):
         await message.answer("Давай знакомиться! \n"
                              "Введите свое имя")
     if ADM_IDS.count(str(message.from_user.id)) > 0:
-        DBcontrol.RegistrDB.sentRole(int(message.from_user.id), 'adm')
+        DBcontrol.RegistrDB.sentRoleOnId(int(message.from_user.id), 'adm')
         if SPEC_ROLE.count(str(message.from_user.id)) > 0:
             await message.answer('Вам назначена роль "Конь-в-пальто". Поздравляю!')
         await state.set_state(AdmStatus.qact)
         await message.answer('Вам назначена роль "Администратор"', reply_markup=kb.KeyAdm.menuKey)
     else:
-        DBcontrol.RegistrDB.sentRole(int(message.from_user.id), 'chlen')
+        DBcontrol.RegistrDB.sentRoleOnId(int(message.from_user.id), 'chlen')
 
 
 @router.message(F.text == 'СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')
@@ -135,31 +137,39 @@ async def check_reg(message: Message, state: FSMContext):
 @router.message(Reg.fcheck)
 async def FinCheck(message: Message, state: FSMContext):
     if message.text == '✅Да':
+
         await message.answer_photo(photo = 'AgACAgIAAxkBAAICm2bUdxAgj2vU6NzkyzLftKfofBQtAALR3jEbFY6hSidi3586Bn4rAQADAgADeQADNQQ',
                                    caption ='Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!',
                                    reply_markup=base_key)
         await message.answer(AchiveControl.AchFReg.getRegAch(message.from_user.id))
         await message.answer_sticker('CAACAgIAAxkBAAICnmbUdyeDAevdrt88kPc9EI5pwmugAAIYVQACFThpSoaY4Mhc9xoLNQQ')
+        DBcontrol.Achives.coinUpdater(message.from_user.id, 15)
         await state.set_state(userMenu.qact)
         del reg_info[str(message.from_user.id)]
     if message.text == '❌Нет':
-        await message.answer('Ой, давай попробуем пройти пройти регистрацию еще раз. '
-                             'Если снова не получится, я передам информацию о проблеме в техническую поддержку.\n\n'
-                             'Нажми 👉 /start')
+        await message.answer('Изменить свои данные ты можешь в профиле в разделе "Редактирование профиля".')
         await bot.send_message(ADM_IDS[0], f'АЛАРМ! У пользователя с  @{message.from_user.username}"'
                                            f' проблемы с регистрацией. Пожалуйста уточни у него, всё ли хорошо.')
+        await message.answer(AchiveControl.AchFReg.getRegAch(message.from_user.id))
+        await message.answer_sticker('CAACAgIAAxkBAAICnmbUdyeDAevdrt88kPc9EI5pwmugAAIYVQACFThpSoaY4Mhc9xoLNQQ')
+        DBcontrol.Achives.coinUpdater(message.from_user.id, 15)
+        await state.set_state(userMenu.qact)
+        del reg_info[str(message.from_user.id)]
+
 
 
 @router.message(userMenu.qact)
 async def startUserMenu(message: Message, state: FSMContext):
     if message.text == 'Профиль':
-        await message.answer(f'И так, что мы знаем о тебе?\n'
+        await message.answer(f'И так, что мы знаем о тебе?\n\n'
+                             f'ID для встреч: {str(DBcontrol.GetData.GetUserInfo(message.from_user.id)["uid"])}\n\n'
                              f'Имя: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["name"]} \n'
                              f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["sname"]}\n'
                              f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)["institute"]}\n'
                              f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["facult"]}\n'
                              f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["course"]} \n\n'
-                             f'Посетил встреч: Информация о встречах скоро станет доступна. Следите за обновлниями бота.')
+                             f'Посетил встреч: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["visit"]}\n'
+                             f'Твой баланс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["coins"]} ПИ-коинов')
     elif message.text == 'Мне нужна помощь!':
         await message.answer('Напишите пожалуйста, в чем проблема и мы передадим Ваше обращение в поддержку.')
         await state.set_state(userMenu.qhelp)
@@ -236,6 +246,35 @@ async def GetAdmAct(message: Message, state: FSMContext):
     elif message.text == 'Получить стикер ID':
         await message.answer('Отправьте стикер')
         await state.set_state(AdmStatus.stikID)
+    elif message.text == 'Управление':
+        await message.answer('Выберите действие', reply_markup=KeyAdm.contrKey)
+        await state.set_state(AdmStatus.controlPanel)
+
+@router.message(AdmStatus.controlPanel)
+async def controlPanelch(message: Message, state: FSMContext):
+    if message.text == 'ID по фамилии':
+        await message.answer('введите фамилию')
+    elif message.text == 'Выдать ачивку':
+        await message.answer('введите uid/сервисное название ачивки/название ачивки для пользователя/коины\n\n'
+                             'reg - за регистрацию\n'
+                             'friend - дружеский призыв\n'
+                             'tech - игротехники\n'
+                             'dm - ДМ\n'
+                             'dnd - участник партии dnd')
+        await state.set_state(AdmStatus.endSendAchive)
+
+@router.message(AdmStatus.endSendAchive)
+async def endSendAchive(message: Message, state: FSMContext):
+    data = message.text.split('/')
+    if AchiveControl.FreeAchive(int(data[0]), data[1]):
+        coins = DBcontrol.Achives.coinUpdater(int(data[0]), int(data[3]))
+        await bot.send_message(int(data[0]), f'Вы получаете достижение {data[2]}\n\n'
+                                             f'За него Вам начисленно {data[3]} ПИ-коинов\n'
+                                             f'Ваш текущий баланс: {coins}')
+        await message.answer('Ачивка успешно добавлена')
+    else:
+        await message.answer('У пользователя уже есть такая ачивка')
+
 
 @router.message(AdmStatus.phoID)
 async def sendPhotoId(message: Message, state: FSMContext):
@@ -247,16 +286,30 @@ async def sendStikId(message: Message, state: FSMContext):
     print(f'stiker: {message.sticker.file_id}')
     await state.set_state(AdmStatus.qact)
 
+@router.message(AdmStatus.startMeets)
+async def startMeetsIDS(message: Message, state: FSMContext):
+    global WrList
+    uids = message.text.split('\n')
+    WrList = MeetControl.sendMeetStart(uids)
+    await message.answer(f'Вы запустили встречу в {st_meet.strftime("%H:%M")}')
+    await sendler.sendFID(uids, f'Вас отметили на встрече от {st_meet.strftime("%d.%m.%Y")}')
+    await state.set_state(AdmStatus.meets)
+
+
 @router.message(AdmStatus.meets)
 async def GetMeets(message: Message, state: FSMContext):
     if message.text == 'Начать встречу':
         global st_meet
         st_meet = datetime.now()
-        await message.answer(f'Вы запустили встречу в {st_meet.strftime("%H:%M")}')
+        # DBcontrol.Meets.CreateMeetData()
+        # await message.answer(f'Вы запустили встречу в {st_meet.strftime("%H:%M")}')
+        await message.answer('Отправьте ID присутствующих')
+        await state.set_state(AdmStatus.startMeets)
 
     elif message.text == 'Завершить встречу':
         end_meet = datetime.now()
         await message.answer('Встреча завершется...')
+        MeetControl.sendMeetFin(WrList, TimeCount(st_meet, end_meet))
         # DBcontrol.Meets.sendMeetData(datetime.now().strftime("%d.%m.%Y"),
         #                              st_meet.strftime("%H:%M"),
         #                              end_meet.strftime("%H:%M"),
@@ -264,6 +317,7 @@ async def GetMeets(message: Message, state: FSMContext):
         sleep(5)
         await message.answer(f'Встреча завершена в {end_meet.strftime("%H:%M")}. \n\n '
                              f'Длительность встречи: {TimeCount(st_meet, end_meet)} секунд', reply_markup=KeyAdm.menuKey)
+        WrlIST = []
         await state.set_state(AdmStatus.qact)
 
 @router.message(AdmStatus.qTextsends)

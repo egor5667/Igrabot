@@ -53,7 +53,7 @@ editKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 
 class KeyAdm:
     menuKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-        [KeyboardButton(text='Встречи')],
+        [KeyboardButton(text='Встречи'), KeyboardButton(text='Управление')],
         [KeyboardButton(text='Создать рассылку')],
         [KeyboardButton(text='Получить ID фото')],
         [KeyboardButton(text='Получить стикер ID')]
@@ -70,5 +70,9 @@ class KeyAdm:
     sendKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
         [KeyboardButton(text='Завершить создание рассылки')],
         [KeyboardButton(text='Редактировать текст')]
+    ])
+    contrKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+        [KeyboardButton(text='ID по фамилии'), KeyboardButton(text='Выдать ачивку')],
+        [KeyboardButton(text='Указать игротехников')]
     ])
 

@@ -69,7 +69,7 @@ class RegistrDB:
         else:
             return True
 
-    def sentRole(uid, role):
+    def sentRoleOnId(uid, role):
         cur = conn.cursor()
         cur.execute('UPDATE users SET (role) = ? WHERE TgId = ?', (str(role), uid))
         conn.commit()
@@ -79,19 +79,21 @@ class RegistrDB:
 class Meets:
     def CreateMeetData(uid, dat, tStart):
         cur = conn.cursor()
-        cur.execute('INSERT INTO meets (TgId, date, tStart,) '
-                    'VALUES (?, ?, ?)', (uid, dat, tStart,))
+        cur.execute('INSERT INTO meets (TgId, date, tStart) '
+                    'VALUES (?, ?, ?)', (uid, dat, tStart))
         conn.commit()
-        inf = cur.execute('SELECT id FROM meets WHERE TgId = ? AND date = ?', (uid, dat)).fetchall()
+        exchange = cur.execute('SELECT id FROM meets WHERE TgId = ? AND date = ?', (uid, dat)).fetchall()
         conn.commit()
         cur.close()
+        inf = [x[0] for x in exchange]
         return inf
 
     def CloseMeetData(wrId, tEnd, totTime):
         cur = conn.cursor()
-        cur.execute('UPDATE meets SET (tEnd, totTimeSec) = ?, ? WHERE id = ?', (tEnd, totTime, wrId))
+        cur.execute('UPDATE meets SET (tEnd, totTimeSec) = (?, ?) WHERE id = ?', (tEnd, totTime, wrId))
         conn.commit()
         cur.close()
+
 
 
 
@@ -130,6 +132,37 @@ class Achives:
             return True
         return False
 
+    def coinUpdater(uid, coin):
+        cur = conn.cursor()
+        curCoin = cur.execute('SELECT coins FROM users WHERE TgId = ?', (uid,)).fetchone()
+        conn.commit()
+        curCoin += coin
+        cur.execute('UPDATE users SET coins = ? WHERE TgId = ?', (curCoin, uid))
+        conn.commit()
+        cur.close()
+        return curCoin
+
+    def meetCount(uid):
+        cur = conn.cursor()
+        nowMeets = cur.execute('SELECT visits FROM users WHERE TgId = ?', (uid,)).fetchone()[0]
+        conn.commit()
+        nowMeets += 1
+        cur.execute('UPDATE users SET visits = ? WHERE TgId = ?', (nowMeets, uid))
+        conn.commit()
+        cur.close()
+        return nowMeets
+
+    def TechCount(uid):
+        cur = conn.cursor()
+        nowTech = cur.execute('SELECT Tech FROM users WHERE TgId = ?', (uid,)).fetchone()[0]
+        conn.commit()
+        nowTech += 1
+        cur.execute('UPDATE users SET Tech = ? WHERE TgId = ?', (nowTech, uid))
+        conn.commit()
+        cur.close()
+        return nowTech
+
+
 
 
 
@@ -144,11 +177,12 @@ class GetData:
                'institute' : cData[3],
                'facult' : cData[4],
                'course' : cData[5],
-               'role' : cData[6]}
+               'role' : cData[6],
+               'coins': cData[8],
+               'vsit': cData[9],
+               'tech': cData[10]}
         conn.commit()
         cur.close()
         return inf
-
-
 
 
