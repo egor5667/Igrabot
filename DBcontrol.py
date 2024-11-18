@@ -1,6 +1,7 @@
 # Файл взаимодействия с БД
 
 import sqlite3
+from sys import exception
 from turtledemo.penrose import inflatedart
 
 conn = sqlite3.connect('Igrarium.db')
@@ -134,13 +135,40 @@ class Achives:
 
     def coinUpdater(uid, coin):
         cur = conn.cursor()
-        curCoin = cur.execute('SELECT coins FROM users WHERE TgId = ?', (uid,)).fetchone()
+        curCoin = cur.execute('SELECT coins FROM users WHERE TgId = ?', (uid,)).fetchone()[0]
         conn.commit()
         curCoin += coin
         cur.execute('UPDATE users SET coins = ? WHERE TgId = ?', (curCoin, uid))
         conn.commit()
         cur.close()
         return curCoin
+
+    def ListcoinUpdate(uids, coin):
+        for i in range(len(uids)):
+            try:
+                cur = conn.cursor()
+                curCoin = cur.execute('SELECT coins FROM users WHERE TgId = ?', (uids[i],)).fetchone()[0]
+                conn.commit()
+                curCoin += coin
+                cur.execute('UPDATE users SET coins = ? WHERE TgId = ?', (curCoin, uids[i]))
+                conn.commit()
+                cur.close()
+            except:
+                pass
+
+    def LastMeet(uid):
+        try:
+            cur = conn.cursor()
+            d1 = cur.execute('SELECT date FROM meets WHERE TgId = ?', (uid,)).fetchall()[-1][0]
+            conn.commit()
+            d2 = cur.execute('SELECT date FROM meets WHERE TgId = ?', (uid,)).fetchall()[-2][0]
+        except:
+            pass
+        return [d1, d2]
+
+
+
+
 
     def meetCount(uid):
         cur = conn.cursor()
@@ -179,7 +207,7 @@ class GetData:
                'course' : cData[5],
                'role' : cData[6],
                'coins': cData[8],
-               'vsit': cData[9],
+               'visit': cData[9],
                'tech': cData[10]}
         conn.commit()
         cur.close()

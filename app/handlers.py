@@ -15,7 +15,7 @@ from app.keyboards import KeyAdm, base_key, editKey
 from testconf import ADM_IDS, SPEC_ROLE
 from app.statuses import Reg, AdmStatus, userMenu, editProfile
 import DBcontrol
-from  app.Timecontrol import TimeCount
+from app.Timecontrol import TimeCount, DateCount, Streek
 from app.sendler import sedText
 import AchiveControl
 from app import sendler
@@ -56,6 +56,9 @@ async def start_comand(message: Message, state: FSMContext):
     else:
         DBcontrol.RegistrDB.sentRoleOnId(int(message.from_user.id), 'chlen')
 
+# @router.message(Command("coinPlus"))
+# async def coin_comand(message: Message):
+#     s = message.text
 
 @router.message(F.text == 'СЖЕЕЕЧЬ ВСЁЁЁЁ!!!!!')
 async def delall(message: Message):
@@ -138,8 +141,7 @@ async def check_reg(message: Message, state: FSMContext):
 async def FinCheck(message: Message, state: FSMContext):
     if message.text == '✅Да':
 
-        await message.answer_photo(photo = 'AgACAgIAAxkBAAICm2bUdxAgj2vU6NzkyzLftKfofBQtAALR3jEbFY6hSidi3586Bn4rAQADAgADeQADNQQ',
-                                   caption ='Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!',
+        await message.answer('Ура! Поздравляю, теперь регистрация закончилась. Спасибо, что присоединился к нам!',
                                    reply_markup=base_key)
         await message.answer(AchiveControl.AchFReg.getRegAch(message.from_user.id))
         await message.answer_sticker('CAACAgIAAxkBAAICnmbUdyeDAevdrt88kPc9EI5pwmugAAIYVQACFThpSoaY4Mhc9xoLNQQ')
@@ -147,7 +149,8 @@ async def FinCheck(message: Message, state: FSMContext):
         await state.set_state(userMenu.qact)
         del reg_info[str(message.from_user.id)]
     if message.text == '❌Нет':
-        await message.answer('Изменить свои данные ты можешь в профиле в разделе "Редактирование профиля".')
+        await message.answer('Изменить свои данные ты можешь в профиле в разделе "Редактирование профиля".',
+                             reply_markup=base_key)
         await bot.send_message(ADM_IDS[0], f'АЛАРМ! У пользователя с  @{message.from_user.username}"'
                                            f' проблемы с регистрацией. Пожалуйста уточни у него, всё ли хорошо.')
         await message.answer(AchiveControl.AchFReg.getRegAch(message.from_user.id))
@@ -292,7 +295,16 @@ async def startMeetsIDS(message: Message, state: FSMContext):
     uids = message.text.split('\n')
     WrList = MeetControl.sendMeetStart(uids)
     await message.answer(f'Вы запустили встречу в {st_meet.strftime("%H:%M")}')
-    await sendler.sendFID(uids, f'Вас отметили на встрече от {st_meet.strftime("%d.%m.%Y")}')
+    await sendler.sendFID(uids, f'Вас отметили на встрече от {st_meet.strftime("%d.%m.%Y")}\n'
+                                f'Вам начисленно 15 ПИ-коинов')
+    DBcontrol.Achives.ListcoinUpdate(uids, 15)
+    try:
+        for i in range(len(uids)):
+            if Streek(DBcontrol.Achives.LastMeet(uids[i])[0], DBcontrol.Achives.LastMeet(uids[i])[1]):
+                DBcontrol.Achives.coinUpdater(uids[i], 5)
+                await bot.send_message(uids[i], "+5 ПИ-коинов за посещение нескольких встреч подряд")
+    except:
+        await bot.send_message(ADM_IDS[0], "Отвалилось автоначисление стриков")
     await state.set_state(AdmStatus.meets)
 
 

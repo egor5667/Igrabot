@@ -1,9 +1,6 @@
-data = {'hsd':{'a': 'abobus', 'b': 'buble'}, 'hghg': {'r': 'reeder', 'g': 'giant'}}
+from DBcontrol import Achives
 
-bab = {'k': 'KK', 'c': 'ggggg'}
+from app.Timecontrol import Streek
+a = "hghghg hfhfh/hfhfhf mme/jgjg"
 
-data['hsd'] = bab
-
-for i in data:
-    print(data[i])
-
+print(Achives.LastMeet(940714829))
