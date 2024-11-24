@@ -305,6 +305,18 @@ async def startMeetsIDS(message: Message, state: FSMContext):
                 await bot.send_message(uids[i], "+5 ПИ-коинов за посещение нескольких встреч подряд")
     except:
         await bot.send_message(ADM_IDS[0], "Отвалилось автоначисление стриков")
+    await message.answer('Введите ID игротехников')
+    await state.set_state(AdmStatus.tech)
+
+
+@router.message(AdmStatus.tech)
+async def GetTech(message: Message, state: FSMContext):
+    try:
+        uids = message.text.split('\n')
+        await sendler.sendFID(uids, 'Вам выдана роль игротехника на встрече, Вам начислено 35 ПИ-коинов')
+        DBcontrol.Achives.ListcoinUpdate(uids, 35)
+    except:
+        await bot.send_message(ADM_IDS[0], "Отвалилось автоначисление стриков")
     await state.set_state(AdmStatus.meets)
 
 

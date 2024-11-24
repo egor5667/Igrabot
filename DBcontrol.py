@@ -1,6 +1,7 @@
 # Файл взаимодействия с БД
 
 import sqlite3
+import datetime
 from sys import exception
 from turtledemo.penrose import inflatedart
 
@@ -141,6 +142,11 @@ class Achives:
         cur.execute('UPDATE users SET coins = ? WHERE TgId = ?', (curCoin, uid))
         conn.commit()
         cur.close()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO coinHistory (uid, date, coins) '
+                    'VALUES (?, ?, ?)', (uid, datetime.datetime.now().strftime("%d.%m.%Y--%H:%M"), coin))
+        conn.commit()
+        cur.close()
         return curCoin
 
     def ListcoinUpdate(uids, coin):
@@ -151,6 +157,11 @@ class Achives:
                 conn.commit()
                 curCoin += coin
                 cur.execute('UPDATE users SET coins = ? WHERE TgId = ?', (curCoin, uids[i]))
+                conn.commit()
+                cur.close()
+                cur = conn.cursor()
+                cur.execute('INSERT INTO coinHistory (uid, date, coins) '
+                            'VALUES (?, ?, ?)', (uids[i], datetime.datetime.now().strftime("%d.%m.%Y--%H:%M"), coin))
                 conn.commit()
                 cur.close()
             except:

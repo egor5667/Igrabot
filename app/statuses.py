@@ -15,6 +15,7 @@ class Reg(StatesGroup):
 class AdmStatus(StatesGroup):
     qact = State()
     meets = State()
+    tech = State()
     qTextsends = State()
     confsends = State()
     confsendsID = State()
