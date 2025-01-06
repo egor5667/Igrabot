@@ -2,7 +2,6 @@
 
 import sqlite3
 import datetime
-from sys import exception
 from turtledemo.penrose import inflatedart
 
 conn = sqlite3.connect('Igrarium.db')
@@ -149,6 +148,25 @@ class Achives:
         cur.close()
         return curCoin
 
+    # def coinFSname(sname, coin):
+    #     sname = str(sname)
+    #     cur = conn.cursor()
+    #     curCoin = cur.execute('SELECT coins FROM users WHERE sname = ?', (sname,)).fetchone()[0]
+    #     conn.commit()
+    #     uid = cur.execute('SELECT TgId FROM users WHERE sname = ?', (sname,)).fetchone()[0]
+    #     conn.commit()
+    #     curCoin += coin
+    #     cur.execute('UPDATE users SET coins = ? WHERE TgId = ?', (curCoin, uid))
+    #     conn.commit()
+    #     cur.close()
+    #     cur = conn.cursor()
+    #     cur.execute('INSERT INTO coinHistory (uid, date, coins) '
+    #                 'VALUES (?, ?, ?)', (uid, datetime.datetime.now().strftime("%d.%m.%Y--%H:%M"), coin))
+    #     conn.commit()
+    #     cur.close()
+    #     return curCoin
+
+
     def ListcoinUpdate(uids, coin):
         for i in range(len(uids)):
             try:
@@ -177,6 +195,15 @@ class Achives:
             pass
         return [d1, d2]
 
+    # def AllUsers():
+    #     cur = conn.cursor()
+    #     cur.execute("SELECT TgId FROM users").fetchall()
+    #     ids = [row['TgId'] for row in cur]
+    #     cur.execute("SELECT sname FROM users").fetchall()
+    #     snames = [row['sname'] for row in cur]
+    #     inf = dict(zip(snames, ids))
+    #     return inf
+
 
 
 
@@ -200,7 +227,6 @@ class Achives:
         conn.commit()
         cur.close()
         return nowTech
-
 
 
 

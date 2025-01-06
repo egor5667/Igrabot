@@ -29,6 +29,8 @@ class AdmStatus(StatesGroup):
     getUID = State()
     startSendAchive = State()
     endSendAchive = State()
+    coinCount = State()
+    coinUser = State()
 
 
 class editProfile(StatesGroup):

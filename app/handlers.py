@@ -1,5 +1,6 @@
 #Файл, в котором прописанны хэндлеры, отвечающие за взаимодействие с пользователями
 from datetime import datetime
+from itertools import count
 from time import sleep
 
 from aiogram.types import Message
@@ -161,24 +162,7 @@ async def FinCheck(message: Message, state: FSMContext):
 
 
 
-@router.message(userMenu.qact)
-async def startUserMenu(message: Message, state: FSMContext):
-    if message.text == 'Профиль':
-        await message.answer(f'И так, что мы знаем о тебе?\n\n'
-                             f'ID для встреч: {str(DBcontrol.GetData.GetUserInfo(message.from_user.id)["uid"])}\n\n'
-                             f'Имя: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["name"]} \n'
-                             f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["sname"]}\n'
-                             f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)["institute"]}\n'
-                             f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["facult"]}\n'
-                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["course"]} \n\n'
-                             f'Посетил встреч: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["visit"]}\n'
-                             f'Твой баланс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["coins"]} ПИ-коинов')
-    elif message.text == 'Мне нужна помощь!':
-        await message.answer('Напишите пожалуйста, в чем проблема и мы передадим Ваше обращение в поддержку.')
-        await state.set_state(userMenu.qhelp)
-    elif message.text == 'Редактировать профиль':
-        await message.answer('Выберите что нужно отредактировать', reply_markup=editKey)
-        await state.set_state(editProfile.qedit)
+
 
 @router.message(editProfile.qedit)
 async def choseEdit(message: Message, state: FSMContext):
@@ -229,7 +213,8 @@ async def sendHelp(message: Message, state: FSMContext):
     await bot.send_message(ADM_IDS[0], f'Новое обращение: \n\n'
                                        f'{text} \n\n'
                                        f'От пользователя: @{message.from_user.username}')
-    await message.answer('Я передал Ваше обращение в поддержку. В ближайшее время c Вами свяжутся.')
+    await message.answer('Я передал Ваше обращение в поддержку. В ближайшее время c Вами свяжутся.', reply_markup=base_key)
+    await state.set_state(userMenu.qact)
 
 # @router.message(Command('hell'))
 # async def hell_comand(message: Message):
@@ -252,6 +237,29 @@ async def GetAdmAct(message: Message, state: FSMContext):
     elif message.text == 'Управление':
         await message.answer('Выберите действие', reply_markup=KeyAdm.contrKey)
         await state.set_state(AdmStatus.controlPanel)
+    elif message.text == 'Начислить коины':
+        await message.answer('Сколько коинов начислить?')
+        await state.set_state(AdmStatus.coinCount)
+
+@router.message(AdmStatus.coinCount)
+async def coinmainUpdate(message: Message, state: FSMContext):
+    global count
+    count = message.text
+    await message.answer('Введите список пользователей')
+    await state.set_state(AdmStatus.coinUser)
+
+
+@router.message(AdmStatus.coinUser)
+async def coinAddition(message: Message, state: FSMContext):
+    uidList = message.text.split('\n')
+    try:
+        await sendler.sendFID(uidList, f'Вам начисленно {count} ПИ-коинов')
+        DBcontrol.Achives.ListcoinUpdate(uidList, int(count))
+        await message.answer('Начисление успешно')
+        await state.set_state(AdmStatus.qact)
+    except:
+        await bot.send_message(ADM_IDS[0], "Отвалилось начисление коинов")
+    
 
 @router.message(AdmStatus.controlPanel)
 async def controlPanelch(message: Message, state: FSMContext):
@@ -313,10 +321,12 @@ async def startMeetsIDS(message: Message, state: FSMContext):
 async def GetTech(message: Message, state: FSMContext):
     try:
         uids = message.text.split('\n')
-        await sendler.sendFID(uids, 'Вам выдана роль игротехника на встрече, Вам начислено 35 ПИ-коинов')
-        DBcontrol.Achives.ListcoinUpdate(uids, 35)
+        if uids != ['-']:
+            await sendler.sendFID(uids, 'Вам выдана роль игротехника на встрече, Вам начислено 35 ПИ-коинов')
+            DBcontrol.Achives.ListcoinUpdate(uids, 35)
+            await message.answer('Встреча запущена успешно')
     except:
-        await bot.send_message(ADM_IDS[0], "Отвалилось автоначисление стриков")
+        await bot.send_message(ADM_IDS[0], "Отвалилось назначение игротехников")
     await state.set_state(AdmStatus.meets)
 
 
@@ -371,7 +381,7 @@ async def GetRoles(message: Message, state: FSMContext):
 @router.message(AdmStatus.qsendID)
 async def getsendID(message: Message, state: FSMContext):
     global senID
-    senID = int(message.text)
+    senID = message.text.split('\n')
     await message.answer('Выбери действие', reply_markup=KeyAdm.sendKey)
     await state.set_state(AdmStatus.confsendsID)
 
@@ -379,7 +389,8 @@ async def getsendID(message: Message, state: FSMContext):
 async def EndIDsendText(message: Message, state: FSMContext):
     if message.text == 'Завершить создание рассылки':
         await message.answer('Отправляю сообщения...')
-        await bot.send_message(senID, sendlerText)
+        for i in range(len(senID)):
+            await bot.send_message(senID[i], sendlerText)
         await message.answer('Успешная рассылка', reply_markup=KeyAdm.menuKey)
         await state.set_state(AdmStatus.qact)
     elif message.text == 'Редактировать текст':
@@ -398,7 +409,24 @@ async def EndSendText(message: Message, state: FSMContext):
         await message.answer('Давай поновый. Всё хуйня. Вводи всё еще раз.')
         await state.set_state(AdmStatus.qTextsends)
 
-
+@router.message(userMenu.qact)
+async def startUserMenu(message: Message, state: FSMContext):
+    if message.text == 'Профиль':
+        await message.answer(f'И так, что мы знаем о тебе?\n\n'
+                             f'ID для встреч: {str(DBcontrol.GetData.GetUserInfo(message.from_user.id)["uid"])}\n\n'
+                             f'Имя: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["name"]} \n'
+                             f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["sname"]}\n'
+                             f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)["institute"]}\n'
+                             f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["facult"]}\n'
+                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["course"]} \n\n'
+                             f'Посетил встреч: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["visit"]}\n'
+                             f'Твой баланс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["coins"]} ПИ-коинов')
+    elif message.text == 'Мне нужна помощь!':
+        await message.answer('Напишите пожалуйста, в чем проблема и мы передадим Ваше обращение в поддержку.')
+        await state.set_state(userMenu.qhelp)
+    elif message.text == 'Редактировать профиль':
+        await message.answer('Выберите что нужно отредактировать', reply_markup=editKey)
+        await state.set_state(editProfile.qedit)
 
 
 

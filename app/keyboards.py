@@ -56,7 +56,8 @@ class KeyAdm:
         [KeyboardButton(text='Встречи'), KeyboardButton(text='Управление')],
         [KeyboardButton(text='Создать рассылку')],
         [KeyboardButton(text='Получить ID фото')],
-        [KeyboardButton(text='Получить стикер ID')]
+        [KeyboardButton(text='Получить стикер ID')],
+        [KeyboardButton(text='Начислить коины')]
     ])
     meetKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
         [KeyboardButton(text='Начать встречу')],
@@ -72,7 +73,7 @@ class KeyAdm:
         [KeyboardButton(text='Редактировать текст')]
     ])
     contrKey = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-        [KeyboardButton(text='ID по фамилии'), KeyboardButton(text='Выдать ачивку')],
-        [KeyboardButton(text='Указать игротехников')]
+        [KeyboardButton(text='ID по фамилии'),
+         KeyboardButton(text='Выдать ачивку')]
     ])
 
