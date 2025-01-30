@@ -428,6 +428,28 @@ async def startUserMenu(message: Message, state: FSMContext):
         await message.answer('Выберите что нужно отредактировать', reply_markup=editKey)
         await state.set_state(editProfile.qedit)
 
+@router.message()
+async def afterUpdate(message: Message, state: FSMContext):
+    if message.text == 'Профиль':
+        await message.answer(f'И так, что мы знаем о тебе?\n\n'
+                             f'ID для встреч: {str(DBcontrol.GetData.GetUserInfo(message.from_user.id)["uid"])}\n\n'
+                             f'Имя: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["name"]} \n'
+                             f'Фамилия: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["sname"]}\n'
+                             f'Ты из педа? {DBcontrol.GetData.GetUserInfo(message.from_user.id)["institute"]}\n'
+                             f'Факультет: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["facult"]}\n'
+                             f'Курс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["course"]} \n\n'
+                             f'Посетил встреч: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["visit"]}\n'
+                             f'Твой баланс: {DBcontrol.GetData.GetUserInfo(message.from_user.id)["coins"]} ПИ-коинов')
+        await state.set_state(userMenu.qact)
+    elif message.text == 'Мне нужна помощь!':
+        await message.answer('Напишите пожалуйста, в чем проблема и мы передадим Ваше обращение в поддержку.')
+        await state.set_state(userMenu.qhelp)
+    elif message.text == 'Редактировать профиль':
+        await message.answer('Выберите что нужно отредактировать', reply_markup=editKey)
+        await state.set_state(editProfile.qedit)
+    else:
+        await message.answer('Я не понимаю о чем вы. Если возникли трудности и у Вас что-то не работает, нажмите:'
+                             '\n\n/start')
 
 
 
