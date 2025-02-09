@@ -1,36 +1,29 @@
 import flet as ft
-from flet.core.icons import icons
 
 
 def main(page: ft.Page):
+    # Данные
+    data = {"Иванов": 101, "Петров": 102, "Сидоров": 103}
 
-    userLabel = ft.Text('Info')
-    userText = ft.TextField(value="0", width=150, text_align=ft.TextAlign.CENTER)
+    # Словарь для хранения чекбоксов
+    checkboxes = {}
 
-    def get_info(e):
-        userLabel.value = userText.value
-        page.update()
+    # Функция для обработки нажатия кнопки
+    def on_submit(e):
+        selected_ids = [id for name, id in data.items() if checkboxes[name].value]
+        print("Выбранные ID:", selected_ids)
+
+    # Генерируем чекбоксы
+    for name, id in data.items():
+        checkboxes[name] = ft.Checkbox(label=name)
+        page.add(checkboxes[name])
+
+    # Добавляем кнопку
+    submit_btn = ft.ElevatedButton(text="Отправить", on_click=on_submit)
+    page.add(submit_btn)
+
+    page.update()
 
 
-    page.title = "Приложение"
-    page.theme_mode = 'dark'
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-
-    page.add(
-        ft.Row(
-            [
-                ft.IconButton(ft.icons.HOME, on_click=get_info),
-                ft.Icon(ft.icons.BACK_HAND)
-            ],
-            alignment=ft.MainAxisAlignment.CENTER
-        ),
-        ft.Row(
-            [
-            userLabel,
-            userText
-            ],
-            alignment=ft.MainAxisAlignment.CENTER
-        )
-    )
-
+# Запуск приложения
 ft.app(target=main)

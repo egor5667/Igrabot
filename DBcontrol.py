@@ -2,9 +2,12 @@
 
 import sqlite3
 import datetime
-from turtledemo.penrose import inflatedart
+import os
 
-conn = sqlite3.connect('Igrarium.db')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'Igrarium.db')
+
+conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cur = conn.cursor()
 
 # cur.execute(
@@ -248,6 +251,16 @@ class GetData:
                'tech': cData[10]}
         conn.commit()
         cur.close()
+        return inf
+
+    def GetUserIds():
+        cur = conn.cursor()
+        cur.execute("SELECT sname, TgId FROM users")
+        rows = cur.fetchall()  # Загружаем все данные сразу
+        conn.commit()
+        cur.close()
+        # Создаем словарь, связывая sname с TgId
+        inf = {row[0]: row[1] for row in rows}
         return inf
 
 
