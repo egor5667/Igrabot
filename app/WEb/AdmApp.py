@@ -1,5 +1,5 @@
 import flet as ft
-from DBcontrol import GetData
+from DBcontrol import GetData, Achives
 
 def main(page: ft.Page):
     page.title = "Администрирвание"
@@ -72,9 +72,11 @@ def main(page: ft.Page):
     def create_meets_view():
         data = GetData.GetUserIds()
         checks = {}
-        def on_submit():
+        def on_submit(e):
             selected_ids = [id for name, id in data.items() if checks[name].value]
             print("Выбранные ID:", selected_ids)
+            for i in range(len(selected_ids)):
+                Achives.coinUpdater(selected_ids[i], 15)
         sub_btn = ft.ElevatedButton(text="Отправить", on_click=on_submit)
         meet_cont = [
             ft.Text(value="Отметки на встречах", size=20, weight=ft.FontWeight.NORMAL)

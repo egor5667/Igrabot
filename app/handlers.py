@@ -36,7 +36,7 @@ async def help_comand(message: Message):
 @router.message(Command('start'))
 async def start_comand(message: Message, state: FSMContext):
     await message.answer("Привет! Меня зовут Игрик. Я бот-помощник клуба настольных игр 'Играриум'.")
-    await message.answer('Из-за большого количества запросов время ответа может быть увеличено.\n Спасибо за понимание.')
+    # await message.answer('Из-за большого количества запросов время ответа может быть увеличено.\n Спасибо за понимание.')
     if DBcontrol.RegistrDB.FindID(int(message.from_user.id)):
         text = AchiveControl.AchFReg.getRegAch(message.from_user.id)
         if text != 'None':

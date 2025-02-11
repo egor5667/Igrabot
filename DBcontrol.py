@@ -260,7 +260,7 @@ class GetData:
         conn.commit()
         cur.close()
         # Создаем словарь, связывая sname с TgId
-        inf = {row[0]: row[1] for row in rows}
+        inf = dict(sorted({row[0]: row[1] for row in rows}.items()))
         return inf
 
 
